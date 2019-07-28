@@ -1,4 +1,4 @@
-version: 2.1
+version: 2
 jobs:
   build:
     docker:
@@ -6,13 +6,13 @@ jobs:
     working_directory: ~/repo
     steps:
       - checkout
-    - run:
-        name: install dependencies
-        command: |  # use pipenv to install dependencies
-          python3 -m venv venv
-          sudo pip install pipenv
-          . venv/bin/activate
-          pipenv install --dev
+      - run:
+          name: install dependencies
+          command: |  # use pipenv to install dependencies
+            python3 -m venv venv
+            sudo pip install pipenv
+            . venv/bin/activate
+            pipenv install --dev
       - run:
           name: run tests
           command: |
@@ -26,11 +26,29 @@ jobs:
       - image: circleci/python:3.6.3
 
     working_directory: ~/app
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: |  # use pipenv to install dependencies
+            python3 -m venv venv
+            sudo pip install pipenv
+            . venv/bin/activate
+            pipenv install --dev
+      - run:
+          name: Build and push Docker image
+          command: |
+            . venv/bin/activate
+            docker build -t $DOCKER_LOGIN/$IMAGE_NAME:$TAG .
+            echo $DOCKER_PWD | docker login -u $DOCKER_LOGIN --password-stdin
+            docker push $DOCKER_LOGIN/$IMAGE_NAME:$TAG
 
-    - run:
-        name: Build and push Docker image
-        command: |
-          . venv/bin/activate
-          docker build -t $DOCKER_LOGIN/$IMAGE_NAME:$TAG .
-          echo $DOCKER_PWD | docker login -u $DOCKER_LOGIN --password-stdin
-          docker push $DOCKER_LOGIN/$IMAGE_NAME:$TAG
+workflows:
+  version: 2
+  build:
+    jobs:
+      - deploy:
+          filters:
+            branches:
+              only:
+                - master
