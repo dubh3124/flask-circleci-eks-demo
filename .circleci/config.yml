@@ -134,8 +134,8 @@ workflows:
       - create-deployment:
           cluster-name: my-eks-demo
       - create-service:
-          - requires:
-              - create-deployment
+          requires:
+            - create-deployment
 #      - aws-eks/update-container-image:
 #          cluster-name: my-eks-demo
 #          container-image-updates: 'demoapp=hemrantech/flask-circleci-eks-demo:latest'
