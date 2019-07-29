@@ -22,7 +22,7 @@ jobs:
             . venv/bin/activate
             pytest -v flask_app/
 
-  deploy:
+  build:
     docker:
       # specify the version you desire here
       # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
@@ -49,20 +49,44 @@ jobs:
             docker build -t $DOCKER_LOGIN/$IMAGE_NAME:$TAG .
             echo $DOCKER_PWD | docker login -u $DOCKER_LOGIN --password-stdin
             docker push $DOCKER_LOGIN/$IMAGE_NAME:$TAG
-
+  test-cluster:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    steps:
+      - kubernetes/install
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+      - run:
+          command: |
+            kubectl get services
+          name: Test cluster
 workflows:
   version: 2.1
-  build:
+  test_build_deploy:
     jobs:
-      - test_build:
-          filters:
-            branches:
-              only:
-                - master
-      - deploy:
+#      - test_build:
+#          filters:
+#            branches:
+#              only:
+#                - master
+#      - build:
+#          requires:
+#            - test_build
+#          filters:
+#            branches:
+#              only:
+#                - master
+      - aws-eks/create-cluster:
+          cluster-name: my-eks-demo
+      - test-cluster:
+          cluster-name: my-eks-demo
           requires:
-            - test_build
-          filters:
-            branches:
-              only:
-                - master
+            - aws-eks/create-cluster
+#      - aws-eks/delete-cluster:
+#          cluster-name: my-eks-demo
+#          requires:
+#            - test-cluster
