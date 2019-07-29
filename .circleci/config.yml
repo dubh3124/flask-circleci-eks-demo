@@ -86,6 +86,11 @@ workflows:
           cluster-name: my-eks-demo
           requires:
             - aws-eks/create-cluster
+          filters:
+            branches:
+              only:
+                - eksdeploy
+
 #      - aws-eks/delete-cluster:
 #          cluster-name: my-eks-demo
 #          requires:
