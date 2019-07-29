@@ -1,6 +1,9 @@
-version: 2
+version: 2.1
+orbs:
+  aws-eks: circleci/aws-eks@0.2.0
+  kubernetes: circleci/kubernetes@0.3.0
 jobs:
-  build:
+  test_build:
     docker:
       - image: circleci/python:3.6.3
     working_directory: ~/repo
@@ -48,10 +51,17 @@ jobs:
             docker push $DOCKER_LOGIN/$IMAGE_NAME:$TAG
 
 workflows:
-  version: 2
+  version: 2.1
   build:
     jobs:
+      - test_build:
+          filters:
+            branches:
+              only:
+                - master
       - deploy:
+          requires:
+            - test_build
           filters:
             branches:
               only:
