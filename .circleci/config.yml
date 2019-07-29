@@ -134,6 +134,7 @@ workflows:
       - create-deployment:
           cluster-name: my-eks-demo
       - create-service:
+          cluster-name: my-eks-demo
           requires:
             - create-deployment
 #      - aws-eks/update-container-image:
