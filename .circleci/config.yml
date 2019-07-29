@@ -64,6 +64,40 @@ jobs:
           command: |
             kubectl get services
           name: Test cluster
+
+  create-deployment:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    steps:
+      - checkout
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+          install-kubectl: true
+      - kubernetes/create-or-update-resource:
+          get-rollout-status: true
+          resource-file-path: kubernetes/demoapp-deployment.yml
+          resource-name: deployment/demoapp-deployment
+
+  create-service:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    steps:
+      - checkout
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+          install-kubectl: true
+      - kubernetes/create-or-update-resource:
+          get-rollout-status: true
+          resource-file-path: kubernetes/demoapp-service.yml
+          resource-name: service/demoapp-service
 workflows:
   version: 2.1
   test_build_deploy:
@@ -80,18 +114,37 @@ workflows:
 #            branches:
 #              only:
 #                - master
-      - aws-eks/create-cluster:
-          cluster-name: my-eks-demo
-      - test-cluster:
-          cluster-name: my-eks-demo
-          requires:
-            - aws-eks/create-cluster
-          filters:
-            branches:
-              only:
-                - eksdeploy
 
+#      - aws-eks/create-cluster:
+#          cluster-name: my-eks-demo
+#      - test-cluster:
+#          cluster-name: my-eks-demo
+#          requires:
+#            - aws-eks/create-cluster
+#          filters:
+#            branches:
+#              only:
+#                - eksdeploy
+#
 #      - aws-eks/delete-cluster:
 #          cluster-name: my-eks-demo
 #          requires:
 #            - test-cluster
+
+      - create-deployment:
+          cluster-name: my-eks-demo
+      - create-service:
+          - requires:
+              - create-deployment
+#      - aws-eks/update-container-image:
+#          cluster-name: my-eks-demo
+#          container-image-updates: 'demoapp=hemrantech/flask-circleci-eks-demo:latest'
+#          post-steps:
+#            - kubernetes/delete-resource:
+#                resource-names: nginx-deployment
+#                resource-types: deployment
+#                wait: true
+#          record: true
+#          requires:
+#            - create-deployment
+#          resource-name: deployment/demoapp-deployment
