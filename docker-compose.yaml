@@ -1,0 +1,11 @@
+version: "3"
+services:
+  demoapp:
+    container_name: "flask-circleci-eks-demo"
+    restart: always
+    image: flask-circleci-eks-demo
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+    - "80:5000"

@@ -35,6 +35,10 @@ jobs:
             sudo pip install pipenv
             . venv/bin/activate
             pipenv install --dev
+
+      - setup_remote_docker:
+          docker_layer_caching: true
+
       - run:
           name: Build and push Docker image
           command: |
