@@ -67,16 +67,8 @@ jobs:
 
   create-deployment:
     executor: aws-eks/python3
-    parameters:
-      cluster-name:
-        description: |
-          Name of the EKS cluster
-        type: string
     steps:
       - checkout
-      - aws-eks/update-kubeconfig-with-authenticator:
-          cluster-name: << parameters.cluster-name >>
-          install-kubectl: true
       - kubernetes/create-or-update-resource:
           get-rollout-status: true
           resource-file-path: kubernetes/demoapp-deployment.yml
@@ -85,15 +77,8 @@ jobs:
   create-service:
     executor: aws-eks/python3
     parameters:
-      cluster-name:
-        description: |
-          Name of the EKS cluster
-        type: string
     steps:
       - checkout
-      - aws-eks/update-kubeconfig-with-authenticator:
-          cluster-name: << parameters.cluster-name >>
-          install-kubectl: true
       - kubernetes/create-or-update-resource:
           get-rollout-status: true
           resource-file-path: kubernetes/demoapp-service.yml
@@ -132,9 +117,7 @@ workflows:
 #            - test-cluster
 
       - create-deployment:
-          cluster-name: my-eks-demo
       - create-service:
-          cluster-name: my-eks-demo
           requires:
             - create-deployment
 #      - aws-eks/update-container-image:
