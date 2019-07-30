@@ -81,7 +81,7 @@ jobs:
       - kubernetes/create-or-update-resource:
           get-rollout-status: true
           resource-file-path: kubernetes/demoapp-deployment.yml
-          resource-name: deployment/demoapp-deployment
+          resource-name: deployment/demoapp
 
   create-service:
     executor: aws-eks/python3
@@ -99,11 +99,14 @@ jobs:
       - kubernetes/create-or-update-resource:
           get-rollout-status: true
           resource-file-path: kubernetes/demoapp-service.yml
-          resource-name: service/demoapp-service
+          resource-name: service/demoapp
 workflows:
   version: 2.1
   test_build_deploy:
     jobs:
+      - aws-eks/delete-cluster:
+          cluster-name: demoapp-eks1
+          aws-region: us-west-2
 #      - test_build:
 #          filters:
 #            branches:
@@ -118,29 +121,28 @@ workflows:
 #                - master
 
 #      - aws-eks/create-cluster:
-#          cluster-name: my-eks-demo
+#          cluster-name: demoapp-eks1
+#          aws-region: us-west-2
+#          ssh-public-key: DubEKS
+#          verbose: 5
 #      - test-cluster:
-#          cluster-name: my-eks-demo
+#          cluster-name: demoapp-eks1
 #          requires:
 #            - aws-eks/create-cluster
-#          filters:
-#            branches:
-#              only:
-#                - eksdeploy
 #
 #      - aws-eks/delete-cluster:
-#          cluster-name: my-eks-demo
+#          cluster-name: demoapp-eks
 #          requires:
 #            - test-cluster
 
-      - create-deployment:
-          cluster-name: my-eks-demo
-      - create-service:
-          cluster-name: my-eks-demo
-          requires:
-            - create-deployment
+#      - create-deployment:
+#          cluster-name: demoapp-eks
+#      - create-service:
+#          cluster-name: demoapp-eks
+#          requires:
+#            - create-deployment
 #      - aws-eks/update-container-image:
-#          cluster-name: my-eks-demo
+#          cluster-name: demoapp-eks
 #          container-image-updates: 'demoapp=hemrantech/flask-circleci-eks-demo:latest'
 #          post-steps:
 #            - kubernetes/delete-resource:
